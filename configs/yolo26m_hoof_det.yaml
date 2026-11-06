@@ -1,0 +1,20 @@
+# YOLO26m hoof detector of the paper (Ultralytics 8.4): yolo train cfg=configs/yolo26m_hoof_det.yaml data=<hoof boxes data.yaml>
+task: detect
+model: yolo26m.pt          # COCO-pre-trained
+epochs: 120
+imgsz: 1280
+batch: 4
+optimizer: AdamW
+lr0: 0.002
+lrf: 0.01
+fliplr: 0.5
+mosaic: 1.0
+close_mosaic: 10
+degrees: 0.0
+scale: 0.5
+translate: 0.1
+hsv_h: 0.015
+hsv_s: 0.7
+hsv_v: 0.4
+patience: 40
+seed: 0

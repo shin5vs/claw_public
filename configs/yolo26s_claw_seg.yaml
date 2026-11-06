@@ -1,0 +1,20 @@
+# YOLO26s-seg claw segmenter of the paper (Ultralytics 8.4): yolo train cfg=configs/yolo26s_claw_seg.yaml data=<claw crops data.yaml>
+task: segment
+model: yolo26s-seg.pt      # COCO-pre-trained
+epochs: 200
+imgsz: 640
+batch: 16
+optimizer: AdamW
+lr0: 0.002
+lrf: 0.01
+fliplr: 0.5
+mosaic: 0.5
+close_mosaic: 30
+degrees: 10
+scale: 0.4
+translate: 0.1
+hsv_h: 0.015
+hsv_s: 0.6
+hsv_v: 0.4
+patience: 50
+seed: 0

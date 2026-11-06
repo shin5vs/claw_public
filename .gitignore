@@ -1,0 +1,7 @@
+data/
+weights/
+results/
+nnunet/
+sam2/
+__pycache__/
+*.pyc
