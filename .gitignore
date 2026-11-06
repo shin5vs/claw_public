@@ -5,3 +5,5 @@ nnunet/
 sam2/
 __pycache__/
 *.pyc
+matched_package/
+matched_baselines_package.zip

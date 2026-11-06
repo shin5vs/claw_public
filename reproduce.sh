@@ -30,6 +30,9 @@ $PY scripts/finetune_sam2.py --data data/ClawSet_coco --model base_plus --train-
 yolo train cfg=configs/yolo26s_claw_seg.yaml data=data/claw_crops/data.yaml
 yolo train cfg=configs/yolo26m_hoof_det.yaml data=data/hoof_boxes/data.yaml
 
+# data-matched baselines: build the Colab package, run notebooks/matched_baselines_colab.ipynb, unpack into weights/matched/
+$PY scripts/make_matched_package.py
+
 # 7. benchmark on the internal test set
 CMP="yolo_roi rfdetr_roi sam_zs_halves sam_lora_halves sam3_text_full sam3_halves"
 PRIMARY="abl_cnx_boxscale_s0 abl_cnx_boxscale_s1 abl_cnx_boxscale_s2"
@@ -60,6 +63,13 @@ $PY scripts/benchmark.py $EXT --ablation --out results/clawtest/abl --repeats 1
 $PY scripts/benchmark.py $EXT --ablation --jitter --models $PRIMARY --out results/clawtest/abl
 $PY scripts/downscale_and_detector.py detector $EXT --models $CMP unet_cnx nnunet_nomirror $NNC $PRIMARY --out clawtest/detector_per_hoof.csv
 $PY scripts/benchmark.py $EXT --models yolo_roi_c010 yolo_roi_c005 yolo_roi_c001 rfdetr_roi_c010 rfdetr_roi_c005 rfdetr_roi_c001 --out results/clawtest/lowconf
+
+# data-matched baselines on both test sets
+MM="yolo_roi_matched yolo_roi_matched_c001 sam_ftm_box sam_ftm_halves sam_ftm_claws"
+$PY scripts/benchmark.py --models $MM --out results/matched --repeats 1
+$PY scripts/benchmark.py --models yolo_roi_matched yolo_roi_matched_c001 sam_ftm_halves --jitter --out results/matched
+$PY scripts/benchmark.py $EXT --models $MM --out results/clawtest/matched --repeats 1
+$PY scripts/benchmark.py $EXT --models yolo_roi_matched yolo_roi_matched_c001 sam_ftm_halves --jitter --out results/clawtest/matched
 
 # 9. statistics
 $PY scripts/stats_internal.py

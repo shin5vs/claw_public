@@ -16,6 +16,7 @@ The repository contains everything needed to reproduce the models, the benchmark
 | Fine-tuning of SAM 2.1 | `scripts/finetune_sam2.py`, `scripts/sam2_common.py` |
 | YOLO training settings (claw segmenter, hoof detector) | `configs/*.yaml` |
 | nnU-Net dataset export and Colab notebook | `scripts/nnunet_prepare.py`, `notebooks/nnunet_colab.ipynb` |
+| Data-matched retraining of YOLO26s-seg and SAM 2.1 on the training set of the primary U-Net (Colab) | `scripts/make_matched_package.py`, `notebooks/matched_baselines_colab.ipynb` |
 | Controlled downscaling and end-to-end evaluation with the hoof detector | `scripts/downscale_and_detector.py` |
 | Statistics (bootstrap and frame-clustered bootstrap, Wilcoxon tests with Holm correction) | `scripts/stats_internal.py`, `scripts/stats_variants.py`, `scripts/stats_external.py` |
 
@@ -79,6 +80,8 @@ git clone https://github.com/facebookresearch/sam2   # SAM 2.1 code, used by fin
    --train-blocks 4 --epochs 20 --out weights/SAM2.1-clawseg-lora` (COCO export of the photograph training images).
 5. **YOLO26s-seg and hoof detector**: `yolo train cfg=configs/yolo26s_claw_seg.yaml data=...` and
    `yolo train cfg=configs/yolo26m_hoof_det.yaml data=...`.
+   Data-matched baselines: `python scripts/make_matched_package.py`, run `notebooks/matched_baselines_colab.ipynb`
+   on Colab and unpack its results into `weights/matched/` (configurations `yolo_roi_matched`, `sam_ftm_*`).
 6. **RF-DETR-Seg Medium** was trained on the Roboflow platform from the COCO-pre-trained checkpoint: 65 epochs,
    432 x 432 px, automatic orientation, letterboxing with black borders, horizontal flips with probability 0.3 and
    otherwise default hyper-parameters. The exported checkpoint is loaded with `rfdetr.RFDETRSegMedium`.
@@ -100,7 +103,8 @@ Configuration names in `scripts/benchmark.py`: `unet_cnx`, `unet_r34` (video-sel
 `yolo_roi15`, `yolo_full`, `rfdetr_roi`, `rfdetr_roi15`, `rfdetr_full` (detection-based models, window 0.5, window 1.5,
 full frame), `yolo_roi_c010`, `yolo_roi_c005`, `yolo_roi_c001` and the same for RF-DETR (confidence thresholds),
 `sam_zs_{box,halves,claws}` and `sam_lora_{box,halves,claws}` (SAM 2.1 zero-shot and fine-tuned with whole-box,
-half-box and two-stage prompts), `sam3_{text_full,text_roi,box,halves}` (SAM 3 zero-shot).
+half-box and two-stage prompts), `sam3_{text_full,text_roi,box,halves}` (SAM 3 zero-shot), `yolo_roi_matched`, `yolo_roi_matched_c001` and
+`sam_ftm_{box,halves,claws}` (data-matched YOLO26s-seg and SAM 2.1).
 
 ## Verification
 

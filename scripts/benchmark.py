@@ -42,6 +42,7 @@ DATA = paths.DATA
 RFDETR = W / "RFDETR-SEG-claw" / "rfdetrmedium.pt"
 SAM_BASE = W / "SAM2.1-base" / "sam2.1_hiera_base_plus.pt"
 SAM_LORA = W / "SAM2.1-clawseg-lora" / "best.pt"
+MATCHED = W / "matched"
 SAM_METHODS = ("sam2_box", "sam2_halves", "sam2_claws")
 
 
@@ -294,8 +295,8 @@ def build_ablation_models(ctx, only=None):
 
 def build_models(ctx, only=None):
     unet = lambda wt: SEGMENTERS.create("unet", {"weights": str(wt)}, ctx)
-    sam = lambda method, lora: SEGMENTERS.create("pixelmap", {
-        "method": method, "sam2_weights": str(SAM_BASE), "sam2_finetuned": str(SAM_LORA) if lora else None,
+    sam = lambda method, lora, ft=SAM_LORA: SEGMENTERS.create("pixelmap", {
+        "method": method, "sam2_weights": str(SAM_BASE), "sam2_finetuned": str(ft) if lora else None,
         "roi_padding": 0.5, "min_claw_height_px": 0}, ctx)
     yolo_w = W / "YOLO-SEG-claw" / "yolo26s-clawseg2.pt"
     specs = {
@@ -311,6 +312,11 @@ def build_models(ctx, only=None):
         **{f"yolo_roi_c{t}": (lambda c=c: PipelineModel(SEGMENTERS.create("yolo", {"weights": str(yolo_w), "conf": c, "roi_padding": 0.5}, ctx)))
            for t, c in (("010", 0.10), ("005", 0.05), ("001", 0.01))},
         **{f"rfdetr_roi_c{t}": (lambda c=c: RfDetr(c, "roi", 0.5)) for t, c in (("010", 0.10), ("005", 0.05), ("001", 0.01))},
+        # data-matched baselines: retrained on exactly the training set of the primary U-Net
+        # (scripts/make_matched_package.py and notebooks/matched_baselines_colab.ipynb)
+        "yolo_roi_matched": lambda: PipelineModel(SEGMENTERS.create("yolo", {"weights": str(MATCHED / "yolo26s_matched/best.pt"), "conf": 0.28, "roi_padding": 0.5}, ctx)),
+        "yolo_roi_matched_c001": lambda: PipelineModel(SEGMENTERS.create("yolo", {"weights": str(MATCHED / "yolo26s_matched/best.pt"), "conf": 0.01, "roi_padding": 0.5}, ctx)),
+        **{f"sam_ftm_{m.split('_')[1]}": (lambda m=m: PipelineModel(sam(m, True, MATCHED / "sam21_matched/best.pt"))) for m in SAM_METHODS},
         **{f"sam_zs_{m.split('_')[1]}": (lambda m=m: PipelineModel(sam(m, False))) for m in SAM_METHODS},
         **{f"sam_lora_{m.split('_')[1]}": (lambda m=m: PipelineModel(sam(m, True))) for m in SAM_METHODS},
         **{f"sam3_{m}": (lambda m=m: Sam3(m)) for m in ("text_full", "text_roi", "box", "halves")},
@@ -324,8 +330,9 @@ def build_models(ctx, only=None):
             parts = name.split(":")
             specs[name] = (lambda t=parts[1], fo=int(parts[2]), m=not name.endswith(":nomirror"),
                            r="results_colab" if name.startswith("nnunetc:") else "results": nnunet_model(t, fo, mirroring=m, results=r))
-    if only is None:          # the default benchmark run keeps the original 18 configurations
-        specs.pop("nnunet"); specs.pop("nnunet_nomirror")
+    if only is None:          # the default benchmark run keeps the original configurations
+        for k in [k for k in specs if k.startswith(("nnunet", "yolo_roi_matched", "sam_ftm_", "yolo_roi_c", "rfdetr_roi_c"))]:
+            specs.pop(k)
     return {k: v for k, v in specs.items() if only is None or k in only}
 
 
