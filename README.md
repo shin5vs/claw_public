@@ -112,6 +112,4 @@ and `scripts/stats_variants.py` reproduces Table 3 and the variant tests of Sect
 
 MIT License (see `LICENSE`). If you use this code, please cite the paper:
 
-> Ötvös, A., Hajdu, Cs., Horváth, K., Páble, T., Kovács, K., Tőzsér, J. Treating Angus claw segmentation as a biomedical
-> imaging problem: a ConvNeXt–U-Net versus YOLO, RF-DETR and SAM on farm photographs and video. Livestock Science
-> (submitted).
+> Later...
