@@ -48,7 +48,7 @@ $PY scripts/benchmark.py --models nnunet_nomirror --jitter --out results/nnunet_
 $PY scripts/benchmark.py --models $NNC --out results/nnunet_colab                  # three runs from nnunet/results_colab
 $PY scripts/benchmark.py --models $NNC --jitter --out results/nnunet_colab
 $PY scripts/downscale_and_detector.py resolution                                   # benchmark models
-$PY scripts/downscale_and_detector.py resolution --models $PRIMARY --out ablation/resolution_per_sample.csv
+$PY scripts/downscale_and_detector.py resolution --models $PRIMARY abl_dlv3p_cnx_s0 abl_dlv3p_cnx_s1 abl_dlv3p_cnx_s2 abl_segformer_b2_s0 abl_segformer_b2_s1 abl_segformer_b2_s2 --out ablation/resolution_per_sample.csv
 $PY scripts/downscale_and_detector.py resolution --models nnunet_nomirror --out nnunet_nomirror/resolution_per_sample.csv
 $PY scripts/downscale_and_detector.py resolution --models $NNC --out nnunet_colab/resolution_per_sample.csv
 $PY scripts/downscale_and_detector.py detector

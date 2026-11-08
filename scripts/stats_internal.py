@@ -121,7 +121,8 @@ per_hoof, jrows, follow_seed = merge(SEEDS, NAME, OUT, {"per_hoof": ["ablation/p
 # results/arch_avg/<name>/ as models dlv3p_avg and segformer_avg (Table 2)
 for prefix, cname in (("abl_dlv3p_cnx", "dlv3p_avg"), ("abl_segformer_b2", "segformer_avg")):
     merge([f"{prefix}_s{s}" for s in range(3)], cname, R / "arch_avg" / cname,
-          {"per_hoof": ["ablation/per_hoof.csv"], "jitter": ["ablation/jitter.csv"], "detector": ["ablation/detector_per_hoof.csv"]})
+          {"per_hoof": ["ablation/per_hoof.csv"], "jitter": ["ablation/jitter.csv"], "detector": ["ablation/detector_per_hoof.csv"],
+           "resolution": ["ablation/resolution_per_sample.csv"]})
 
 # tests against the benchmark models
 B = read(R / "benchmark/per_hoof.csv") + read(R / "nnunet_avg/per_hoof.csv")
