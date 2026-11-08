@@ -1,4 +1,4 @@
-"""U-Net variants (Table 3 and Section 3.6): means and standard deviations over seeds, and the paired Wilcoxon tests
+"""U-Net variants and decoder controls (Table 3 and Section 3.6): means and standard deviations over seeds, and the paired Wilcoxon tests
 (uncorrected) on seed-averaged per-hoof values reported in the paper.
 
     python scripts/stats_variants.py
@@ -20,7 +20,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import paths  # noqa: E402
 
 R = paths.RESULTS
-VARIANTS = ["full", "nogap", "photoval", "fliponly", "boxscale", "scratch"]
+VARIANTS = ["full", "nogap", "photoval", "fliponly", "boxscale", "scratch", "dlv3p", "segformer"]
+PREFIX = {"dlv3p": "abl_dlv3p_cnx", "segformer": "abl_segformer_b2"}   # decoder controls
 
 
 def read(p):
@@ -39,7 +40,7 @@ BENCH = read(R / "benchmark/per_hoof.csv") + read(R / "nnunet_avg/per_hoof.csv")
 
 
 def seeds(v):
-    return [f"abl_cnx_{v}_s{s}" for s in range(3)]
+    return [f"{PREFIX.get(v, 'abl_cnx_' + v)}_s{s}" for s in range(3)]
 
 
 def per_hoof(rows, models, key="inst_iou", sub=None, hoof="hoof"):
@@ -79,6 +80,8 @@ tests = {
     "video: random vs ImageNet encoder": test(V("scratch", sub="video"), V("boxscale", sub="video")),
     "all: random encoder vs nnU-Net": test(V("scratch"), per_hoof(BENCH, ["nnunet_avg"])),
     "video: random encoder vs nnU-Net": test(V("scratch", sub="video"), per_hoof(BENCH, ["nnunet_avg"], sub="video")),
+    "video: DeepLabV3+ vs primary U-Net": test(V("dlv3p", sub="video"), V("boxscale", sub="video")),
+    "video: SegFormer-B2 vs primary U-Net": test(V("segformer", sub="video"), V("boxscale", sub="video")),
 }
 (R / "variants.json").write_text(json.dumps({"table": table, "tests_uncorrected": tests}, indent=1))
 for v, t in table.items():

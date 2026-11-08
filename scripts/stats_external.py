@@ -26,6 +26,8 @@ GROUPS = {
     "unet_primary": [f"abl_cnx_boxscale_s{s}" for s in range(3)],
     "nnunet_avg": ["nnunet_nomirror"] + [f"nnunetc:nnUNetTrainer_100epochs:{k}:nomirror" for k in range(3)],
     **{f"var_{v}": [f"abl_cnx_{v}_s{s}" for s in range(3)] for v in ("full", "nogap", "photoval", "fliponly", "boxscale", "scratch")},
+    "var_dlv3p": [f"abl_dlv3p_cnx_s{s}" for s in range(3)],          # decoder controls
+    "var_segformer": [f"abl_segformer_b2_s{s}" for s in range(3)],
 }
 BASE = ["yolo_roi", "rfdetr_roi", "sam_zs_halves", "sam_lora_halves", "sam3_text_full", "sam3_halves", "nnunet_avg"]
 SINGLE = ["unet_cnx", "unet_r34", "yolo_roi", "rfdetr_roi", "sam_zs_box", "sam_zs_halves", "sam_lora_box", "sam_lora_halves",
@@ -155,6 +157,18 @@ stats["extra"] = {
     "nnunet_vs_detectors": {b: paired_p(per_hoof("nnunet_avg"), per_hoof(b)) for b in ("yolo_roi", "rfdetr_roi")},
     "primary_det_vs_gt": paired_p({h: P[h] for h in found}, per_hoof("unet_primary", rows=DET, hoof_col="hoof_id")),
 }
+# decoder controls against the primary U-Net: hoof- and frame-level tests, Holm over the two controls (frame level, as
+# reported in the paper)
+ctrl = {}
+for c in ("var_dlv3p", "var_segformer"):
+    d = per_hoof(c)
+    if d:
+        ctrl[c] = {"mean": float(np.mean(list(d.values()))), "p_hoof": paired_p(d, P),
+                   "p_frame": paired_p(frame_means(d), frame_means(P))}
+if len(ctrl) == 2:
+    for c, ph in zip(ctrl, holm(np.array([ctrl[c]["p_frame"] for c in ctrl]))):
+        ctrl[c]["p_frame_holm_two_controls"] = float(ph)
+stats["decoder_controls"] = ctrl
 (R / "stats.json").write_text(json.dumps(stats, indent=1))
 for rec in summary:
     print(f"{rec['model']:16s} {rec['inst_iou']:.3f} ({rec['ci'][0]:.2f}-{rec['ci'][1]:.2f}) sd {rec['seed_sd']:.3f} iou {rec['iou']:.3f} "

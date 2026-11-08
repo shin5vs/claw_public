@@ -81,7 +81,7 @@ def holm(ps):
 
 def merge(seeds, name, out, src):
     """Seed-averages per hoof and writes per_hoof, summary, jitter, resolution and detector CSVs to out."""
-    out.mkdir(exist_ok=True)
+    out.mkdir(parents=True, exist_ok=True)
     rd = lambda key: [r for p in src[key] for r in read(R / p)]  # noqa: E731
     per_hoof = seed_average(rd("per_hoof"), ["hoof", "subset", "hoof_h", "n_gt"], METRICS, seeds, name)
     write(out / "per_hoof.csv", per_hoof)
@@ -99,8 +99,9 @@ def merge(seeds, name, out, src):
     jrows = seed_average(jit, ["hoof", "subset", "n_gt"], ["inst_iou_m", "inst_iou_p", "iou_m", "iou_p", "follow"], seeds, name)
     write(out / "jitter.csv", jrows)
     follow = [float(np.nanmedian([f(r["follow"]) for r in jit if r["model"] == s])) for s in seeds]
-    write(out / "resolution.csv", seed_average(rd("resolution"), ["hoof_id", "level_px", "jpeg_q", "native_px"],
-                                               ["iou", "inst_iou", "separated", "n_pred"], seeds, name))
+    if "resolution" in src:
+        write(out / "resolution.csv", seed_average(rd("resolution"), ["hoof_id", "level_px", "jpeg_q", "native_px"],
+                                                   ["iou", "inst_iou", "separated", "n_pred"], seeds, name))
     write(out / "detector.csv", seed_average(rd("detector"), ["hoof_id", "subset", "det_iou"],
                                              ["iou", "inst_iou", "separated", "n_pred"], seeds, name))
     return per_hoof, jrows, follow
@@ -115,6 +116,12 @@ merge(NN_SEEDS, "nnunet_avg", R / "nnunet_avg",
 per_hoof, jrows, follow_seed = merge(SEEDS, NAME, OUT, {"per_hoof": ["ablation/per_hoof.csv"], "jitter": ["ablation/jitter.csv"],
                                                        "resolution": ["ablation/resolution_per_sample.csv"],
                                                        "detector": ["ablation/detector_per_hoof.csv"]})
+
+# decoder controls (DeepLabV3+ on the ConvNeXt-Tiny encoder, SegFormer-B2), seed-averaged the same way into
+# results/arch_avg/<name>/ as models dlv3p_avg and segformer_avg (Table 2)
+for prefix, cname in (("abl_dlv3p_cnx", "dlv3p_avg"), ("abl_segformer_b2", "segformer_avg")):
+    merge([f"{prefix}_s{s}" for s in range(3)], cname, R / "arch_avg" / cname,
+          {"per_hoof": ["ablation/per_hoof.csv"], "jitter": ["ablation/jitter.csv"], "detector": ["ablation/detector_per_hoof.csv"]})
 
 # tests against the benchmark models
 B = read(R / "benchmark/per_hoof.csv") + read(R / "nnunet_avg/per_hoof.csv")

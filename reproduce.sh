@@ -62,8 +62,9 @@ EXT="--data ${CLAWSEG_EXTERNAL:-data/ClawTest}"
 $PY scripts/benchmark.py $EXT --models unet_cnx unet_r34 yolo_roi rfdetr_roi sam_zs_box sam_zs_halves sam_lora_box sam_lora_halves sam3_text_full sam3_box sam3_halves nnunet_nomirror $NNC --out results/clawtest/bench --repeats 1
 $PY scripts/benchmark.py $EXT --jitter --models $CMP nnunet_nomirror $NNC --out results/clawtest/bench
 $PY scripts/benchmark.py $EXT --ablation --out results/clawtest/abl --repeats 1
-$PY scripts/benchmark.py $EXT --ablation --jitter --models $PRIMARY --out results/clawtest/abl
-$PY scripts/downscale_and_detector.py detector $EXT --models $CMP unet_cnx nnunet_nomirror $NNC $PRIMARY --out clawtest/detector_per_hoof.csv
+CONTROLS="abl_dlv3p_cnx_s0 abl_dlv3p_cnx_s1 abl_dlv3p_cnx_s2 abl_segformer_b2_s0 abl_segformer_b2_s1 abl_segformer_b2_s2"
+$PY scripts/benchmark.py $EXT --ablation --jitter --models $PRIMARY $CONTROLS --out results/clawtest/abl
+$PY scripts/downscale_and_detector.py detector $EXT --models $CMP unet_cnx nnunet_nomirror $NNC $PRIMARY $CONTROLS --out clawtest/detector_per_hoof.csv
 $PY scripts/benchmark.py $EXT --models yolo_roi_c010 yolo_roi_c005 yolo_roi_c001 rfdetr_roi_c010 rfdetr_roi_c005 rfdetr_roi_c001 --out results/clawtest/lowconf
 
 # data-matched baselines on both test sets
