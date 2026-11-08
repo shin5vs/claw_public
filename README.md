@@ -1,7 +1,7 @@
 # Angus claw-surface segmentation: ConvNeXt–U-Net and benchmark
 
-Code for the paper *Treating Angus claw segmentation as a biomedical imaging problem: a ConvNeXt–U-Net versus YOLO,
-RF-DETR and SAM on farm photographs and video* (submitted to Livestock Science).
+Code for the paper *From medical imaging to the farm lane: a ConvNeXt–U-Net outperforms detection-based models and
+matches DeepLabV3+ and SegFormer in segmenting Angus claws from video* (submitted to Livestock Science).
 
 The repository contains everything needed to reproduce the models, the benchmark and the statistics of the paper:
 
