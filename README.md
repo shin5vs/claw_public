@@ -17,6 +17,7 @@ The repository contains everything needed to reproduce the models, the benchmark
 | YOLO training settings (claw segmenter, hoof detector) | `configs/*.yaml` |
 | nnU-Net dataset export and Colab notebook | `scripts/nnunet_prepare.py`, `notebooks/nnunet_colab.ipynb` |
 | Data-matched retraining of YOLO26s-seg and SAM 2.1 on the training set of the primary U-Net (Colab) | `scripts/make_matched_package.py`, `notebooks/matched_baselines_colab.ipynb` |
+| Decoder controls DeepLabV3+ and SegFormer-B2 with the recipe of the primary U-Net (Colab) | `scripts/train_variants.py --arch`, `scripts/make_arch_package.py`, `notebooks/arch_controls_colab.ipynb` |
 | Controlled downscaling and end-to-end evaluation with the hoof detector | `scripts/downscale_and_detector.py` |
 | Statistics (bootstrap and frame-clustered bootstrap, Wilcoxon tests with Holm correction) | `scripts/stats_internal.py`, `scripts/stats_variants.py`, `scripts/stats_external.py` |
 
@@ -36,6 +37,7 @@ Trained or downloaded weights are expected under `weights/` (SAM 2.1 and SAM 3 c
 ```
 weights/UNET-claw/unet_cnx.pt, unet_resnet34.pt          # video-selected U-Nets (scripts/train_unet.py)
 weights/ablation/cnx_<variant>_s<seed>.pt                 # primary U-Net and variants (scripts/train_variants.py)
+weights/ablation/{dlv3p_cnx,segformer_b2}_s<seed>.pt      # decoder controls (scripts/train_variants.py --arch)
 weights/YOLO-SEG-claw/yolo26s-clawseg2.pt                 # configs/yolo26s_claw_seg.yaml
 weights/YOLO-DET-hoof/yolo26m_v4-best.pt                  # configs/yolo26m_hoof_det.yaml
 weights/RFDETR-SEG-claw/rfdetrmedium.pt                   # RF-DETR-Seg Medium (see below)
@@ -72,6 +74,11 @@ git clone https://github.com/facebookresearch/sam2   # SAM 2.1 code, used by fin
    | photos, flip only | as above plus `--flip_only 0.3` |
    | primary model (photos, enlarged windows) | as "photos, full recipe" plus `--box_scale 1.6` |
    | primary configuration, random encoder | as the primary model plus `--no_pretrained` |
+   | DeepLabV3+ (decoder control) | as the primary model plus `--arch deeplabv3plus` (same ConvNeXt-Tiny encoder) |
+   | SegFormer-B2 (decoder control) | as the primary model with `--arch segformer --encoder mit_b2` |
+
+   The decoder controls were trained on Colab: `python scripts/make_arch_package.py`, run
+   `notebooks/arch_controls_colab.ipynb` and unpack its results into `weights/ablation/`.
 
 3. **nnU-Net** (Section 2.5): `python scripts/nnunet_prepare.py`, then `nnUNetv2_plan_and_preprocess -d 501 -c 2d` and
    `nnUNetv2_train 501 2d 0 -tr nnUNetTrainer_100epochs` (four runs with different random initialisation; the

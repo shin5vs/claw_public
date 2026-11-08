@@ -8,6 +8,9 @@
     --box_scale S            training windows are built from the claw box enlarged by a random factor in [1, S] and
                              shifted by up to 15% of its size, to cover the larger whole-hoof boxes of a hoof detector
     --no_pretrained          random encoder initialisation instead of the ImageNet weights
+    --arch A                 unet (default, the network of the paper), deeplabv3plus (DeepLabV3+, output stride 16, on the
+                             timm encoder given by --encoder) or segformer (SegFormer, --encoder mit_b0 ... mit_b5), both
+                             from segmentation_models_pytorch, as controls for the decoder; data, loss and recipe unchanged
     --flip_only P            replace the augmentation by the recipe of RF-DETR-Seg: horizontal flip with probability P,
                              then resizing; no crop jitter, rotation, downscaling, JPEG or photometric changes
 
@@ -48,7 +51,19 @@ from clawseg.segmentation.unet_model import ClawUNet, _ConvBlock  # noqa: E402
 OUT = paths.WEIGHTS / "ablation"
 
 
-def build_model(encoder: str, classes: int, image_skip: bool, pretrained: bool) -> ClawUNet:
+ARCHS = ("unet", "deeplabv3plus", "segformer")
+
+
+def build_model(encoder: str, classes: int, image_skip: bool, pretrained: bool, arch: str = "unet"):
+    if arch != "unet":
+        import segmentation_models_pytorch as smp
+        weights = "imagenet" if pretrained else None
+        if arch == "deeplabv3plus":
+            return smp.DeepLabV3Plus(encoder_name=f"tu-{encoder}", encoder_weights=weights, encoder_output_stride=16,
+                                     classes=classes)
+        if arch == "segformer":
+            return smp.Segformer(encoder_name=encoder, encoder_weights=weights, classes=classes)
+        raise ValueError(f"unknown architecture {arch}")
     model = ClawUNet(encoder, classes=classes, pretrained=pretrained)
     if model.image_skip and not image_skip:
         model.image_skip = False
@@ -180,6 +195,7 @@ def main(argv=None) -> int:
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--no_gap", action="store_true")
     p.add_argument("--no_image_skip", action="store_true")
+    p.add_argument("--arch", default="unet", choices=ARCHS)
     p.add_argument("--val_photos_only", action="store_true")
     p.add_argument("--exclude_train_source", default=None)
     p.add_argument("--flip_only", type=float, default=None)
@@ -210,7 +226,9 @@ def main(argv=None) -> int:
     train = list(data["train"])
     print({k: len(v) for k, v in data.items()}, "hoof regions", flush=True)
 
-    model = build_model(args.encoder, n_classes, not args.no_image_skip, pretrained=not args.no_pretrained).to(device)
+    model = build_model(args.encoder, n_classes, not args.no_image_skip, pretrained=not args.no_pretrained,
+                        arch=args.arch).to(device)
+    image_skip = bool(getattr(model, "image_skip", False))
     enc = list(model.encoder.parameters())
     rest = [q for n, q in model.named_parameters() if not n.startswith("encoder.")]
     opt = torch.optim.AdamW([{"params": enc, "lr": args.lr_encoder}, {"params": rest, "lr": args.lr}],
@@ -225,7 +243,7 @@ def main(argv=None) -> int:
         opt, lambda s: min(1.0, (s + 1) / warmup) * 0.5 * (1 + math.cos(math.pi * min(s / total, 1.0))))
     class_weights = torch.tensor([1.0, 1.0, args.gap_weight][:n_classes], device=device)
     classes = ["background", "claw", "gap"][:n_classes]
-    config = {**vars(args), "n_classes": n_classes, "image_skip": model.image_skip,
+    config = {**vars(args), "n_classes": n_classes, "image_skip": image_skip,
               **{f"n_{k}": len(v) for k, v in data.items()}}
     (out / f"{args.name}_train_config.json").write_text(json.dumps(config, indent=2))
 
@@ -256,7 +274,7 @@ def main(argv=None) -> int:
                 best_score = score
                 best = {"state_dict": {k: v.detach().cpu() for k, v in model.state_dict().items()},
                         "encoder": args.encoder, "classes": classes, "input_size": args.size, "epoch": epoch,
-                        "image_skip": model.image_skip, "valid": {"native": native, "video": video}}
+                        "image_skip": image_skip, "arch": args.arch, "valid": {"native": native, "video": video}}
                 torch.save(best, out / f"{args.name}.pt")
             print(f"epoch {epoch:3d} loss {np.mean(losses):.4f} native {native} video {video}", flush=True)
     metrics = {"best_epoch": best["epoch"], "valid": best["valid"], "train_seconds": round(time.time() - t0),

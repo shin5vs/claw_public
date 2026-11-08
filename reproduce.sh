@@ -17,6 +17,8 @@ for s in 0 1 2; do
   $PY scripts/train_variants.py --encoder convnext_tiny --size 320 --epochs 40 $PHOTOS --flip_only 0.3 --seed $s --name cnx_fliponly_s$s
   $PY scripts/train_variants.py --encoder convnext_tiny --size 320 --epochs 40 $PHOTOS --box_scale 1.6 --seed $s --name cnx_boxscale_s$s
   $PY scripts/train_variants.py --encoder convnext_tiny --size 320 --epochs 40 $PHOTOS --box_scale 1.6 --no_pretrained --seed $s --name cnx_scratch_s$s
+  $PY scripts/train_variants.py --arch deeplabv3plus --encoder convnext_tiny --size 320 --epochs 40 $PHOTOS --box_scale 1.6 --seed $s --name dlv3p_cnx_s$s
+  $PY scripts/train_variants.py --arch segformer --encoder mit_b2 --size 320 --epochs 40 $PHOTOS --box_scale 1.6 --seed $s --name segformer_b2_s$s
 done
 
 # 3. nnU-Net (four 100-epoch runs, see notebooks/nnunet_colab.ipynb for runs on Colab)
@@ -50,7 +52,7 @@ $PY scripts/downscale_and_detector.py resolution --models $PRIMARY --out ablatio
 $PY scripts/downscale_and_detector.py resolution --models nnunet_nomirror --out nnunet_nomirror/resolution_per_sample.csv
 $PY scripts/downscale_and_detector.py resolution --models $NNC --out nnunet_colab/resolution_per_sample.csv
 $PY scripts/downscale_and_detector.py detector
-$PY scripts/downscale_and_detector.py detector --models abl_cnx_full_s0 abl_cnx_full_s1 abl_cnx_full_s2 abl_cnx_nogap_s0 abl_cnx_nogap_s1 abl_cnx_nogap_s2 abl_cnx_photoval_s0 abl_cnx_photoval_s1 abl_cnx_photoval_s2 abl_cnx_fliponly_s0 abl_cnx_fliponly_s1 abl_cnx_fliponly_s2 $PRIMARY abl_cnx_scratch_s0 abl_cnx_scratch_s1 abl_cnx_scratch_s2 --out ablation/detector_per_hoof.csv
+$PY scripts/downscale_and_detector.py detector --models abl_cnx_full_s0 abl_cnx_full_s1 abl_cnx_full_s2 abl_cnx_nogap_s0 abl_cnx_nogap_s1 abl_cnx_nogap_s2 abl_cnx_photoval_s0 abl_cnx_photoval_s1 abl_cnx_photoval_s2 abl_cnx_fliponly_s0 abl_cnx_fliponly_s1 abl_cnx_fliponly_s2 $PRIMARY abl_cnx_scratch_s0 abl_cnx_scratch_s1 abl_cnx_scratch_s2 abl_dlv3p_cnx_s0 abl_dlv3p_cnx_s1 abl_dlv3p_cnx_s2 abl_segformer_b2_s0 abl_segformer_b2_s1 abl_segformer_b2_s2 --out ablation/detector_per_hoof.csv
 $PY scripts/downscale_and_detector.py detector --models nnunet_nomirror --out nnunet_nomirror/detector_per_hoof.csv
 $PY scripts/downscale_and_detector.py detector --models $NNC --out nnunet_colab/detector_per_hoof.csv
 $PY scripts/benchmark.py --models yolo_roi_c010 yolo_roi_c005 yolo_roi_c001 rfdetr_roi_c010 rfdetr_roi_c005 rfdetr_roi_c001 --out results/lowconf_internal

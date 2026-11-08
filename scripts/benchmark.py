@@ -239,7 +239,8 @@ def ablation_unet(path, ctx):
     seg.settings = UnetClawSegmenter.Settings(weights=Path(path))
     seg._torch = torch
     seg.input_size = int(ckpt["input_size"])
-    model = build_model(ckpt["encoder"], len(ckpt["classes"]), bool(ckpt["image_skip"]), pretrained=False)
+    model = build_model(ckpt["encoder"], len(ckpt["classes"]), bool(ckpt["image_skip"]), pretrained=False,
+                        arch=ckpt.get("arch", "unet"))
     model.load_state_dict(ckpt["state_dict"])
     seg.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     seg.model = model.eval().to(seg.device)
