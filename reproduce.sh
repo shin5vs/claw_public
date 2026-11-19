@@ -44,6 +44,7 @@ $PY scripts/benchmark.py --jitter --models $CMP --out results/benchmark
 $PY scripts/benchmark.py --ablation --out results/ablation --repeats 1             # primary U-Net and all variants
 $PY scripts/benchmark.py --ablation --jitter --out results/ablation
 $PY scripts/benchmark.py --models nnunet_nomirror --out results/nnunet_nomirror    # first nnU-Net run (local)
+$PY scripts/benchmark.py --models nnunet --out results/nnunet                      # the same run with test-time mirroring
 $PY scripts/benchmark.py --models nnunet_nomirror --jitter --out results/nnunet_nomirror
 $PY scripts/benchmark.py --models $NNC --out results/nnunet_colab                  # three runs from nnunet/results_colab
 $PY scripts/benchmark.py --models $NNC --jitter --out results/nnunet_colab
@@ -66,6 +67,7 @@ CONTROLS="abl_dlv3p_cnx_s0 abl_dlv3p_cnx_s1 abl_dlv3p_cnx_s2 abl_segformer_b2_s0
 $PY scripts/benchmark.py $EXT --ablation --jitter --models $PRIMARY $CONTROLS --out results/clawtest/abl
 $PY scripts/downscale_and_detector.py detector $EXT --models $CMP unet_cnx nnunet_nomirror $NNC $PRIMARY $CONTROLS --out clawtest/detector_per_hoof.csv
 $PY scripts/benchmark.py $EXT --models yolo_roi_c010 yolo_roi_c005 yolo_roi_c001 rfdetr_roi_c010 rfdetr_roi_c005 rfdetr_roi_c001 --out results/clawtest/lowconf
+$PY scripts/detector_recall.py                                                    # claw-level analysis of the detector candidates, both test sets
 
 # data-matched baselines on both test sets
 MM="yolo_roi_matched yolo_roi_matched_c001 sam_ftm_box sam_ftm_halves sam_ftm_claws"
@@ -78,3 +80,4 @@ $PY scripts/benchmark.py $EXT --models yolo_roi_matched yolo_roi_matched_c001 sa
 $PY scripts/stats_internal.py
 $PY scripts/stats_variants.py
 $PY scripts/stats_external.py
+$PY scripts/stats_secondary.py

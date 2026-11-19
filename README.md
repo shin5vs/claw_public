@@ -19,7 +19,8 @@ The repository contains everything needed to reproduce the models, the benchmark
 | Data-matched retraining of YOLO26s-seg and SAM 2.1 on the training set of the primary U-Net (Colab) | `scripts/make_matched_package.py`, `notebooks/matched_baselines_colab.ipynb` |
 | Decoder controls DeepLabV3+ and SegFormer-B2 with the recipe of the primary U-Net (Colab) | `scripts/train_variants.py --arch`, `scripts/make_arch_package.py`, `notebooks/arch_controls_colab.ipynb` |
 | Controlled downscaling and end-to-end evaluation with the hoof detector | `scripts/downscale_and_detector.py` |
-| Statistics (bootstrap and frame-clustered bootstrap, Wilcoxon tests with Holm correction) | `scripts/stats_internal.py`, `scripts/stats_variants.py`, `scripts/stats_external.py` |
+| Claw-level analysis of the candidates of the detection-based models (is a correct claw mask among them, and how confident is it) | `scripts/detector_recall.py` |
+| Statistics (bootstrap and frame-clustered bootstrap, Wilcoxon tests with Holm correction, secondary comparisons with Holm correction within each family) | `scripts/stats_internal.py`, `scripts/stats_variants.py`, `scripts/stats_external.py`, `scripts/stats_secondary.py` |
 
 ## Data and weights
 
@@ -100,13 +101,14 @@ git clone https://github.com/facebookresearch/sam2   # SAM 2.1 code, used by fin
    python scripts/benchmark.py --ablation --out results/ablation               # U-Net variants
    python scripts/downscale_and_detector.py resolution                         # controlled downscaling
    python scripts/downscale_and_detector.py detector                           # hoof-detector boxes
+   python scripts/detector_recall.py                                           # claw-level analysis of the detector candidates
    python scripts/benchmark.py --data data/ClawTest --models <names> --out results/clawtest/bench   # external test set
    ```
 
-8. **Statistics**: `python scripts/stats_internal.py` (Table 2, nnU-Net average), `python scripts/stats_variants.py` (Table 3 and the variant tests) and `python scripts/stats_external.py` (Table 4).
+8. **Statistics**: `python scripts/stats_internal.py` (Table 2, nnU-Net average), `python scripts/stats_variants.py` (Table 3 and the variant tests) `python scripts/stats_external.py` (Table 4) and `python scripts/stats_secondary.py` (secondary comparisons, Holm-corrected within each family).
 
 Configuration names in `scripts/benchmark.py`: `unet_cnx`, `unet_r34` (video-selected U-Nets), `abl_cnx_<variant>_s<seed>`
-(primary U-Net and variants), `nnunet_nomirror` and `nnunetc:<trainer>:<fold>:nomirror` (nnU-Net runs), `yolo_roi`,
+(primary U-Net and variants), `nnunet_nomirror`, `nnunet` (with test-time mirroring) and `nnunetc:<trainer>:<fold>:nomirror` (nnU-Net runs), `yolo_roi`,
 `yolo_roi15`, `yolo_full`, `rfdetr_roi`, `rfdetr_roi15`, `rfdetr_full` (detection-based models, window 0.5, window 1.5,
 full frame), `yolo_roi_c010`, `yolo_roi_c005`, `yolo_roi_c001` and the same for RF-DETR (confidence thresholds),
 `sam_zs_{box,halves,claws}` and `sam_lora_{box,halves,claws}` (SAM 2.1 zero-shot and fine-tuned with whole-box,
