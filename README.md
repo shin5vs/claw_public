@@ -1,7 +1,7 @@
 # Angus claw-surface segmentation: ConvNeXt–U-Net and benchmark
 
-Code for the paper *From medical imaging to the farm lane: a ConvNeXt–U-Net outperforms detection-based models and
-matches DeepLabV3+ and SegFormer in segmenting Angus claws from video* (submitted to Livestock Science).
+Code for the paper *Dense, prompt-free segmentation outperforms detection-based models for Angus claws in farm video*
+(submitted to Artificial Intelligence in Agriculture).
 
 The repository contains everything needed to reproduce the models, the benchmark and the statistics of the paper:
 
