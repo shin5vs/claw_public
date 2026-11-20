@@ -114,6 +114,7 @@ EXTERNAL = {
     "ImageNet pre-training": {"random encoder vs nnU-Net": (E("scratch"), E("nnunet_avg_ext")),
                               "random vs ImageNet encoder (primary)": (E("scratch"), PE)},
     "augmentation recipe": {"flip-only vs full recipe, photo selection": (E("fliponly"), E("photoval"))},
+    "encoder (video-selected)": {"ResNet34 vs ConvNeXt": (E("unet_r34"), E("unet_cnx"))},
     "detector boxes": {"primary, detector vs annotated box": (
         {h: PE[h] for h in found}, ph(EXT_DET, "primary", hoof="hoof_id"))},
     "checkpoint selection": {"video-selected (unet_cnx) vs photos, full recipe": (E("unet_cnx"), E("photoval")),
