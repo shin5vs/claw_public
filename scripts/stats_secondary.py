@@ -111,7 +111,9 @@ EXTERNAL = {
     "detectors at lower thresholds vs primary": {b: (PE, E(b)) for b in
                                                  ("yolo_roi_c010", "yolo_roi_c005", "yolo_roi_c001",
                                                   "rfdetr_roi_c010", "rfdetr_roi_c005", "rfdetr_roi_c001")},
-    "ImageNet pre-training": {"random encoder vs nnU-Net": (E("scratch"), E("nnunet_avg_ext"))},
+    "ImageNet pre-training": {"random encoder vs nnU-Net": (E("scratch"), E("nnunet_avg_ext")),
+                              "random vs ImageNet encoder (primary)": (E("scratch"), PE)},
+    "augmentation recipe": {"flip-only vs full recipe, photo selection": (E("fliponly"), E("photoval"))},
     "detector boxes": {"primary, detector vs annotated box": (
         {h: PE[h] for h in found}, ph(EXT_DET, "primary", hoof="hoof_id"))},
     "checkpoint selection": {"video-selected (unet_cnx) vs photos, full recipe": (E("unet_cnx"), E("photoval")),
